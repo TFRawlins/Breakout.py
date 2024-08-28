@@ -14,8 +14,6 @@ YELLOW = (240, 190, 10, 255)
 LIGHT_BLUE = (8, 236, 239, 255)
 PINK = (222, 93, 141, 255)
 
-
-# Clase para la paleta
 class Paddle(pygame.sprite.Sprite):
     def __init__(self, game_width, game_height, frame_thickness):
         super().__init__()
@@ -26,8 +24,6 @@ class Paddle(pygame.sprite.Sprite):
         self.game_width = game_width
         self.game_height = game_height
         self.frame_thickness = frame_thickness
-        
-        # Agregamos un espacio de 20 píxeles entre el paddle y el borde inferior
         self.rect.x = game_width // 2 - self.rect.width // 2
         self.rect.y = game_height - self.frame_thickness - self.rect.height - 20
 
@@ -57,16 +53,14 @@ class Ball(pygame.sprite.Sprite):
         next_x = self.rect.x + self.x_speed
         next_y = self.rect.y + self.y_speed
 
-        # Colisión con los bordes laterales
         if next_x <= self.frame_thickness or next_x >= self.game_width - self.frame_thickness - self.rect.width:
             self.x_speed = -self.x_speed
         else:
             self.rect.x = next_x
 
-        # Colisión con el borde superior
         if next_y <= self.header_height + self.frame_thickness:
-            self.y_speed = abs(self.y_speed)  # Aseguramos que la pelota rebote hacia abajo
-        # Colisión con el borde inferior
+            self.y_speed = abs(self.y_speed) 
+
         elif next_y >= self.game_height - self.frame_thickness - self.rect.height:
             self.rect.x = self.game_width // 2
             self.rect.y = self.game_height // 2
@@ -114,4 +108,4 @@ class Block(pygame.sprite.Sprite):
         self.lives -= 1
         if self.lives <= 0:
             return True  # El bloque debe ser eliminado
-        return False  # El bloque 
+        return False 
