@@ -1,0 +1,1 @@
+Para iniciar el juego se tiene que correr el breakout.py
