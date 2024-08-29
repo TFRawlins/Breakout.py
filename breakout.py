@@ -1,9 +1,10 @@
 import pygame
 import sys
-from classes import Paddle, Ball, Block
+from classes import Paddle, Ball, Block, calculate_bounce_centrality, check_block_collision
 from menu_functions import main_menu, ingame_menu
 
 pygame.init()
+#ignore
 
 screen_width = 800
 screen_height = 600
@@ -70,11 +71,14 @@ def game_loop():
             ball.update()
 
             if pygame.sprite.collide_rect(ball, paddle):
-                ball.bounce()
+                if ball.y_speed > 0:
+                    centrality = calculate_bounce_centrality(ball, paddle)
+                    ball.paddle_bounce(centrality)
 
             block_hit_list = pygame.sprite.spritecollide(ball, blocks, True)
             if block_hit_list:
-                ball.bounce()
+                sideornot = check_block_collision(ball, block_hit_list[0])
+                ball.block_bounce(sideornot)
 
             screen.fill(BLACK)
 
