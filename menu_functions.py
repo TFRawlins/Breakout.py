@@ -80,7 +80,6 @@ def main_menu():
                 button_width,
                 button_height,
             )
-            print(menu)
 
         mouse_x, mouse_y = pygame.mouse.get_pos()
 
@@ -259,7 +258,6 @@ def ingame_menu():
             )
             if ingame_response:
                 return ingame_response
-            print(ingame_menu)
 
         mouse_x, mouse_y = pygame.mouse.get_pos()
 

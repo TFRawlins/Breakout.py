@@ -27,10 +27,15 @@ block_width = 75
 block_height = 20
 
 
+def display_lives(screen, lives, screen_width):
+    font = pygame.font.Font(None, 36)
+    text = font.render(f"Lives: {lives}", True, (255, 255, 255))
+    screen.blit(text, (screen_width - 120, 10))
+
+
 def game_loop():
     running = True
     paused = False
-    lives = 3
 
     HEADER_HEIGHT = 50
     FRAME_THICKNESS = 11
@@ -97,6 +102,26 @@ def game_loop():
                 sideornot = check_block_collision(ball, block_hit_list[0])
                 ball.block_bounce(sideornot)
 
+            ball_offset = 20
+            if ball.rect.bottom + ball_offset > screen_height:
+                print("Ball out of bounds")
+                lives -= 1
+                print(f"Lives: {lives}")
+                if lives > 0:
+                    # Reset ball and paddle positions
+                    _lives = lives
+                    paddle, ball, blocks, all_sprites, _lives = reset_game(
+                        screen_width,
+                        screen_height,
+                        FRAME_THICKNESS,
+                        HEADER_HEIGHT,
+                        BLOCK_SPACING_TOP,
+                    )
+                else:
+                    # Game over
+                    running = False
+                    print("Game Over!")
+                    return
             screen.fill(BLACK)
 
             pygame.draw.rect(
@@ -137,6 +162,8 @@ def game_loop():
             pygame.draw.rect(
                 screen, (0, 0, 0), (0, 0, screen_width, HEADER_HEIGHT)
             )
+
+            display_lives(screen, lives, screen_width)
 
             all_sprites.draw(screen)
             pygame.display.flip()
