@@ -15,6 +15,7 @@ YELLOW = (240, 190, 10, 255)
 LIGHT_BLUE = (8, 236, 239, 255)
 PINK = (222, 93, 141, 255)
 
+
 class Paddle(pygame.sprite.Sprite):
     def __init__(self, game_width, game_height, frame_thickness):
         super().__init__()
@@ -26,32 +27,49 @@ class Paddle(pygame.sprite.Sprite):
         self.game_height = game_height
         self.frame_thickness = frame_thickness
         self.rect.x = game_width // 2 - self.rect.width // 2
-        self.rect.y = game_height - self.frame_thickness - self.rect.height - 20
+        self.rect.y = (
+            game_height - self.frame_thickness - self.rect.height - 20
+        )
 
     def move(self, x_direction):
         self.rect.x += x_direction * self.speed
         if self.rect.x < self.frame_thickness:
             self.rect.x = self.frame_thickness
-        elif self.rect.x > self.game_width - self.frame_thickness - self.rect.width:
-            self.rect.x = self.game_width - self.frame_thickness - self.rect.width
+        elif (
+            self.rect.x
+            > self.game_width - self.frame_thickness - self.rect.width
+        ):
+            self.rect.x = (
+                self.game_width - self.frame_thickness - self.rect.width
+            )
+
 
 def calculate_bounce_centrality(ball, paddle):
-    distance = pygame.math.Vector2(ball.rect.center) - pygame.math.Vector2(paddle.rect.center)
+    distance = pygame.math.Vector2(ball.rect.center) - pygame.math.Vector2(
+        paddle.rect.center
+    )
     distance_normalized = distance.length() / paddle.rect.width
     if ball.rect.centerx < paddle.rect.centerx:
         distance_normalized = -distance_normalized
     return distance_normalized
 
+
 def check_block_collision(ball, block):
     if pygame.sprite.collide_rect(ball, block):
-        if abs(ball.rect.centery - block.rect.centery) < ball.rect.height/2.1:
-            return 1  #Hit top or bottom
+        if (
+            abs(ball.rect.centery - block.rect.centery)
+            < ball.rect.height / 2.1
+        ):
+            return 1  # Hit top or bottom
         else:
-            return -1  #aHit side
-    return 0  #No hit
+            return -1  # aHit side
+    return 0  # No hit
+
 
 class Ball(pygame.sprite.Sprite):
-    def __init__(self, game_width, game_height, frame_thickness, header_height):
+    def __init__(
+        self, game_width, game_height, frame_thickness, header_height
+    ):
         super().__init__()
         self.image = pygame.Surface([10, 10])
         self.image.fill(WHITE)
@@ -69,32 +87,45 @@ class Ball(pygame.sprite.Sprite):
         next_x = self.rect.x + self.x_speed
         next_y = self.rect.y + self.y_speed
 
-        if next_x <= self.frame_thickness or next_x >= self.game_width - self.frame_thickness - self.rect.width:
+        if (
+            next_x <= self.frame_thickness
+            or next_x
+            >= self.game_width - self.frame_thickness - self.rect.width
+        ):
             self.x_speed = -self.x_speed
         else:
             self.rect.x = next_x
 
         if next_y <= self.header_height + self.frame_thickness:
-            self.y_speed = abs(self.y_speed) 
+            self.y_speed = abs(self.y_speed)
 
-        elif next_y >= self.game_height - self.frame_thickness - self.rect.height:
+        elif (
+            next_y
+            >= self.game_height - self.frame_thickness - self.rect.height
+        ):
             self.rect.x = self.game_width // 2
             self.rect.y = self.game_height // 2
-            self.y_speed = -abs(self.y_speed)  # Reinicia la bola si toca el fondo
+            self.y_speed = -abs(
+                self.y_speed
+            )  # Reinicia la bola si toca el fondo
         else:
             self.rect.y = next_y
 
     def paddle_bounce(self, centrality=-1):
         EXAGERATION = 1.13
         self.y_speed = -self.y_speed
-        if  centrality == -1:
+        if centrality == -1:
             return
 
         current_angle = math.degrees(math.atan2(self.y_speed, self.x_speed))
 
         current_magnitude = math.sqrt(self.x_speed**2 + self.y_speed**2)
-        new_horizontal_speed = current_magnitude * math.cos(math.radians(current_angle + centrality * 80 * EXAGERATION))
-        new_vertical_speed = current_magnitude * math.sin(math.radians(current_angle + centrality * 80 * EXAGERATION))
+        new_horizontal_speed = current_magnitude * math.cos(
+            math.radians(current_angle + centrality * 80 * EXAGERATION)
+        )
+        new_vertical_speed = current_magnitude * math.sin(
+            math.radians(current_angle + centrality * 80 * EXAGERATION)
+        )
 
         if new_vertical_speed > 0:
             new_vertical_speed = -new_vertical_speed
@@ -107,6 +138,7 @@ class Ball(pygame.sprite.Sprite):
             self.y_speed = -self.y_speed
         else:
             self.x_speed = -self.x_speed
+
 
 class Block(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height, row):
@@ -146,4 +178,4 @@ class Block(pygame.sprite.Sprite):
         self.lives -= 1
         if self.lives <= 0:
             return True  # El bloque debe ser eliminado
-        return False 
+        return False

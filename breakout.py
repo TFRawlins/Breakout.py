@@ -1,10 +1,16 @@
 import pygame
 import sys
-from classes import Paddle, Ball, Block, calculate_bounce_centrality, check_block_collision
+from classes import (
+    Paddle,
+    Ball,
+    Block,
+    calculate_bounce_centrality,
+    check_block_collision,
+)
 from menu_functions import main_menu, ingame_menu
 
 pygame.init()
-#ignore
+# ignore
 
 screen_width = 800
 screen_height = 600
@@ -20,30 +26,42 @@ blocks = pygame.sprite.Group()
 block_width = 75
 block_height = 20
 
+
 def game_loop():
     running = True
     paused = False
     lives = 3
-    
+
     HEADER_HEIGHT = 50
     FRAME_THICKNESS = 11
     BLOCK_SPACING_TOP = 30
-    
-    paddle, ball, blocks, all_sprites, lives = reset_game(screen_width, screen_height, FRAME_THICKNESS, HEADER_HEIGHT, BLOCK_SPACING_TOP)
-    
+
+    paddle, ball, blocks, all_sprites, lives = reset_game(
+        screen_width,
+        screen_height,
+        FRAME_THICKNESS,
+        HEADER_HEIGHT,
+        BLOCK_SPACING_TOP,
+    )
+
     block_columns = 8
     block_rows = 7
     block_width = (screen_width - FRAME_THICKNESS * 2) // block_columns
     block_height = 20
-    
+
     ball = Ball(screen_width, screen_height, FRAME_THICKNESS, HEADER_HEIGHT)
     paddle = Paddle(screen_width, screen_height, FRAME_THICKNESS)
-    
+
     blocks = pygame.sprite.Group()
     for i in range(block_columns):
         for j in range(block_rows):
             block_x = FRAME_THICKNESS + i * block_width
-            block_y = HEADER_HEIGHT + FRAME_THICKNESS + BLOCK_SPACING_TOP + j * block_height
+            block_y = (
+                HEADER_HEIGHT
+                + FRAME_THICKNESS
+                + BLOCK_SPACING_TOP
+                + j * block_height
+            )
             block = Block(block_x, block_y, block_width, block_height, j)
             blocks.add(block)
 
@@ -51,7 +69,6 @@ def game_loop():
     all_sprites.add(paddle)
     all_sprites.add(ball)
     all_sprites.add(blocks)
-
 
     while running:
         for event in pygame.event.get():
@@ -82,23 +99,63 @@ def game_loop():
 
             screen.fill(BLACK)
 
-            pygame.draw.rect(screen, FRAME_COLOR, (0, HEADER_HEIGHT, screen_width, FRAME_THICKNESS))
-            pygame.draw.rect(screen, FRAME_COLOR, (0, screen_height - FRAME_THICKNESS, screen_width, FRAME_THICKNESS))
-            pygame.draw.rect(screen, FRAME_COLOR, (0, HEADER_HEIGHT, FRAME_THICKNESS, screen_height - HEADER_HEIGHT))
-            pygame.draw.rect(screen, FRAME_COLOR, (screen_width - FRAME_THICKNESS - 1, HEADER_HEIGHT, FRAME_THICKNESS + 1, screen_height - HEADER_HEIGHT))
-            pygame.draw.rect(screen, (0, 0, 0), (0, 0, screen_width, HEADER_HEIGHT))
+            pygame.draw.rect(
+                screen,
+                FRAME_COLOR,
+                (0, HEADER_HEIGHT, screen_width, FRAME_THICKNESS),
+            )
+            pygame.draw.rect(
+                screen,
+                FRAME_COLOR,
+                (
+                    0,
+                    screen_height - FRAME_THICKNESS,
+                    screen_width,
+                    FRAME_THICKNESS,
+                ),
+            )
+            pygame.draw.rect(
+                screen,
+                FRAME_COLOR,
+                (
+                    0,
+                    HEADER_HEIGHT,
+                    FRAME_THICKNESS,
+                    screen_height - HEADER_HEIGHT,
+                ),
+            )
+            pygame.draw.rect(
+                screen,
+                FRAME_COLOR,
+                (
+                    screen_width - FRAME_THICKNESS - 1,
+                    HEADER_HEIGHT,
+                    FRAME_THICKNESS + 1,
+                    screen_height - HEADER_HEIGHT,
+                ),
+            )
+            pygame.draw.rect(
+                screen, (0, 0, 0), (0, 0, screen_width, HEADER_HEIGHT)
+            )
 
             all_sprites.draw(screen)
             pygame.display.flip()
 
         else:
             action = ingame_menu()
-            if action == 'continue':
+            print(action)
+            if action == "continue":
                 paused = False
-            elif action == 'restart':
-                paddle, ball, blocks, all_sprites, lives = reset_game(screen_width, screen_height, FRAME_THICKNESS, HEADER_HEIGHT, BLOCK_SPACING_TOP)
+            elif action == "restart":
+                paddle, ball, blocks, all_sprites, lives = reset_game(
+                    screen_width,
+                    screen_height,
+                    FRAME_THICKNESS,
+                    HEADER_HEIGHT,
+                    BLOCK_SPACING_TOP,
+                )
                 paused = False
-            elif action == 'exit':
+            elif action == "exit":
                 return
 
         pygame.display.flip()
@@ -108,7 +165,13 @@ def game_loop():
     sys.exit()
 
 
-def reset_game(screen_width, screen_height, FRAME_THICKNESS, HEADER_HEIGHT, BLOCK_SPACING_TOP):
+def reset_game(
+    screen_width,
+    screen_height,
+    FRAME_THICKNESS,
+    HEADER_HEIGHT,
+    BLOCK_SPACING_TOP,
+):
 
     paddle = Paddle(screen_width, screen_height, FRAME_THICKNESS)
     ball = Ball(screen_width, screen_height, FRAME_THICKNESS, HEADER_HEIGHT)
@@ -121,7 +184,12 @@ def reset_game(screen_width, screen_height, FRAME_THICKNESS, HEADER_HEIGHT, BLOC
     for i in range(block_columns):
         for j in range(block_rows):
             block_x = FRAME_THICKNESS + i * block_width
-            block_y = HEADER_HEIGHT + FRAME_THICKNESS + BLOCK_SPACING_TOP + j * block_height
+            block_y = (
+                HEADER_HEIGHT
+                + FRAME_THICKNESS
+                + BLOCK_SPACING_TOP
+                + j * block_height
+            )
             block = Block(block_x, block_y, block_width, block_height, j)
             blocks.add(block)
 
@@ -133,8 +201,7 @@ def reset_game(screen_width, screen_height, FRAME_THICKNESS, HEADER_HEIGHT, BLOC
     lives = 3
     return paddle, ball, blocks, all_sprites, lives
 
+
 while True:
     main_menu()
     game_loop()
-
-
