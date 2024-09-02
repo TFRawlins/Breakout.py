@@ -174,6 +174,9 @@ class Block(pygame.sprite.Sprite):
             self.image.fill(LIGHT_BLUE)
             return 1
 
+    def get_color(self):
+        return self.lives
+
     def hit(self):
         self.lives -= 1
         if self.lives <= 0:
