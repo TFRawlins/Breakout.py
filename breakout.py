@@ -4,6 +4,7 @@ from classes import (
     Paddle,
     Ball,
     Block,
+    PowerUp,
     calculate_bounce_centrality,
     check_block_collision,
 )
@@ -69,7 +70,7 @@ def game_loop():
 
     ball = Ball(screen_width, screen_height, frame_thickness, header_height)
     paddle = Paddle(screen_width, screen_height, frame_thickness)
-
+    power_ups = pygame.sprite.Group()
     blocks = pygame.sprite.Group()
     for i in range(block_columns):
         for j in range(block_rows):
@@ -96,7 +97,6 @@ def game_loop():
                 paused = not paused
 
         if not paused:
-
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT]:
                 paddle.move(-1)
@@ -104,6 +104,7 @@ def game_loop():
                 paddle.move(1)
 
             ball.update()
+            power_ups.update()
 
             if pygame.sprite.collide_rect(ball, paddle) and ball.y_speed > 0:
                 centrality = calculate_bounce_centrality(ball, paddle)
@@ -113,10 +114,20 @@ def game_loop():
 
             block_hit_list = pygame.sprite.spritecollide(ball, blocks, True)
 
-            if block_hit_list:
-                score = update_score(score, block_hit_list[0])
-                sideornot = check_block_collision(ball, block_hit_list[0])
+            for block in block_hit_list:
+                score = update_score(score, block)
+                sideornot = check_block_collision(ball, block)
                 ball.block_bounce(sideornot)
+                if block.should_spawn_power_up():
+                    power_up = PowerUp(block.rect.centerx, block.rect.centery)
+                    power_ups.add(power_up)
+
+            for power_up in power_ups.copy():
+                if power_up.rect.top > screen_height:
+                    power_ups.remove(power_up)
+                elif pygame.sprite.collide_rect(power_up, paddle):
+                    lives += 1
+                    power_ups.remove(power_up)
 
             ball_offset = 20
             if ball.rect.bottom + ball_offset > screen_height:
@@ -124,7 +135,6 @@ def game_loop():
                 lives -= 1
                 print(f"Lives: {lives}")
                 if lives > 0:
-                    # Reset ball and paddle positions
                     ball = Ball(
                         screen_width,
                         screen_height,
@@ -138,12 +148,12 @@ def game_loop():
                     all_sprites.add(paddle)
                     all_sprites.add(ball)
                     all_sprites.add(blocks)
-
+                    power_ups.empty()
                 else:
-                    # Game over
                     running = False
                     print("Game Over!")
                     return
+
             screen.fill(BLACK)
 
             pygame.draw.rect(
@@ -189,6 +199,7 @@ def game_loop():
             display_score(screen, score)
 
             all_sprites.draw(screen)
+            power_ups.draw(screen)
             pygame.display.flip()
 
         else:
@@ -204,6 +215,7 @@ def game_loop():
                     header_height,
                     block_spacing_top,
                 )
+                power_ups.empty()
                 paused = False
             elif action == "exit":
                 return
