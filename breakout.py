@@ -111,12 +111,16 @@ def game_loop():
                 if ball.y_speed > -1:
                     ball.y_speed = -1
 
-            block_hit_list = pygame.sprite.spritecollide(ball, blocks, True)
+            block_hit_list = pygame.sprite.spritecollide(ball, blocks, False)
 
             if block_hit_list:
                 score = update_score(score, block_hit_list[0])
+
+            for block in block_hit_list:
                 sideornot = check_block_collision(ball, block_hit_list[0])
                 ball.block_bounce(sideornot)
+                if block.hit():
+                    block.kill()  # Removes the block from the group
 
             ball_offset = 20
             if ball.rect.bottom + ball_offset > screen_height:
