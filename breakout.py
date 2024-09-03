@@ -75,10 +75,12 @@ def game_loop():
                     centrality = calculate_bounce_centrality(ball, paddle)
                     ball.paddle_bounce(centrality)
 
-            block_hit_list = pygame.sprite.spritecollide(ball, blocks, True)
-            if block_hit_list:
-                sideornot = check_block_collision(ball, block_hit_list[0])
+            block_hit_list = pygame.sprite.spritecollide(ball, blocks, False)
+            for block in block_hit_list:
+                sideornot = check_block_collision(ball, block)
                 ball.block_bounce(sideornot)
+                if block.hit():
+                    block.kill()  # Removes the block from the group
 
             screen.fill(BLACK)
 
