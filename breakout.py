@@ -137,7 +137,7 @@ def game_loop():
     header_height = 50
     frame_thickness = 11
     block_spacing_top = 30
-    block_rows = 1
+    block_rows = 7
     paddle, ball, blocks, all_sprites, lives, points, level = reset_game(
         screen_width,
         screen_height,
