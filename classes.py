@@ -175,13 +175,29 @@ class Block(pygame.sprite.Sprite):
             self.image.fill(LIGHT_BLUE)
             return 1
 
+    def update_color(self):
+        if self.lives == 7:
+            self.image.fill(PINK)
+        elif self.lives == 6:
+            self.image.fill(RED)
+        elif self.lives == 5:
+            self.image.fill(ORANGE)
+        elif self.lives == 4:
+            self.image.fill(YELLOW)
+        elif self.lives == 3:
+            self.image.fill(GREEN)
+        elif self.lives == 2:
+            self.image.fill(BLUE)
+        elif self.lives == 1:
+            self.image.fill(LIGHT_BLUE)
     def get_color(self):
         return self.lives
 
     def hit(self):
         self.lives -= 1
         if self.lives <= 0:
-            return True 
+            return True
+        self.update_color()
         return False
 
     def should_spawn_power_up(self):
@@ -231,3 +247,4 @@ class PowerUp(pygame.sprite.Sprite):
     @staticmethod
     def should_spawn():
         return random.random() < 0.5 
+

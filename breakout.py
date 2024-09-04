@@ -112,16 +112,17 @@ def game_loop():
                 if ball.y_speed > -1:
                     ball.y_speed = -1
 
-            block_hit_list = pygame.sprite.spritecollide(ball, blocks, True)
+            block_hit_list = pygame.sprite.spritecollide(ball, blocks, False)
+
+            if block_hit_list:
+                score = update_score(score, block_hit_list[0])
 
             for block in block_hit_list:
-                score = update_score(score, block)
-                sideornot = check_block_collision(ball, block)
+                sideornot = check_block_collision(ball, block_hit_list[0])
                 ball.block_bounce(sideornot)
-                if block.should_spawn_power_up():
-                    power_up = PowerUp(block.rect.centerx, block.rect.centery)
-                    power_ups.add(power_up)
-
+                if block.hit():
+                    block.kill()
+                    
             for power_up in power_ups.copy():
                 if power_up.rect.top > screen_height:
                     power_ups.remove(power_up)
