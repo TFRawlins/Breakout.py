@@ -268,5 +268,5 @@ class PowerUp(pygame.sprite.Sprite):
 
     @staticmethod
     def should_spawn():
-        return random.random() < 0.5 
+        return random.random() < 0.8 
 

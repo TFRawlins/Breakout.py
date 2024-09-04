@@ -35,9 +35,14 @@ def display_lives(screen, lives, screen_width):
     text = font.render(f"Lives: {lives}", True, (255, 255, 255))
     screen.blit(text, (screen_width - 120, 10))
 
+def display_level(screen, level, screen_width):
+    font = pygame.font.Font(None, 36)
+    text = font.render(f'Level: {level}', True, (255, 255, 255))
+    screen.blit(text, (screen_width - 220, 10))
+
 def display_points(screen, points):
     font = pygame.font.Font(None, 36)
-    text = font.render(f"Points: {points}", True, (255, 255, 255))
+    text = font.render(f"Points: {points*100}", True, (255, 255, 255))
     screen.blit(text, (10, 10))
 
 def display_combo(screen, combo_text, combo_time):
@@ -58,25 +63,25 @@ def display_combo(screen, combo_text, combo_time):
             combo_text_big(screen)
         return combo_text
     else:
-        #combo_text = 1
+
         return combo_text
     
 def combo_text_1(screen):
-    #display combo text at an angle
+
     font = pygame.font.Font(None, 36)
     text = font.render("COMBO!", True, (255, 1, 255))
     text = pygame.transform.rotate(text, 15)
     screen.blit(text, (screen_width // 2 - 50, 400))
     
 def combo_text_2(screen):
-    #display combo text at an angle
+
     font = pygame.font.Font(None, 36)
     text = font.render("Double Combo!", True, (1, 255, 255))
     text = pygame.transform.rotate(text, 25)
     screen.blit(text, (screen_width // 2 , 420))
 
 def combo_text_3(screen):
-    #display combo text at an angle
+
     font = pygame.font.Font(None, 36)
     text = font.render("Triple Combo!", True, (255, 255, 1))
     text = pygame.transform.rotate(text, 35)
@@ -104,11 +109,8 @@ def combo_text_big(screen):
 
     screen.blit(text, (screen_width // 2 - 30, 430))
 
-
-
-
 def add_points(points, last_hit, combo):
-    #if time since last hit is less than 0.5 second, increment combo
+    
     if last_hit is not None and time.time() - last_hit < 0.5:
         combo += 1
         print(f"Combo: {combo}")
@@ -118,45 +120,39 @@ def add_points(points, last_hit, combo):
     last_hit = time.time()
     return points, last_hit, combo
 
-
-
 def display_score(screen, score):
     font = pygame.font.Font(None, 36)
     text = font.render(f"Score: {score}", True, (255, 255, 255))
     screen.blit(text, (10, 10))
 
-
 def update_score(score, block):
     score += block.get_color() * 100
     return score
-
 
 def game_loop():
     running = True
     paused = False
 
     score = 0
-
     header_height = 50
     frame_thickness = 11
     block_spacing_top = 30
-
-    paddle, ball, blocks, all_sprites, lives = reset_game(
+    block_rows = 1
+    paddle, ball, blocks, all_sprites, lives, points, level = reset_game(
         screen_width,
         screen_height,
         frame_thickness,
         header_height,
         block_spacing_top,
+        block_rows
     )
 
-    points = 0
     last_hit = None
     combo = 0
     combo_text = None
     combo_time = time.time()
 
     block_columns = 8
-    block_rows = 7
     block_width = (screen_width - frame_thickness * 2) // block_columns
     block_height = 20
 
@@ -236,7 +232,7 @@ def game_loop():
             ball_offset = 20
             if ball.rect.bottom + ball_offset > screen_height:
                 ball.y_speed = -ball.y_speed
-                continue
+                 
                 print("Ball out of bounds")
                 lives -= 1
                 print(f"Lives: {lives}")
@@ -303,23 +299,38 @@ def game_loop():
 
             display_lives(screen, lives, screen_width)
             display_points(screen, points)
+            display_level(screen, level, screen_width)
             combo = display_combo(screen, combo, combo_time)
             all_sprites.draw(screen)
             power_ups.draw(screen)
             pygame.display.flip()
 
+            if len(blocks) == 0:
+                level_before = level + 1
+                lives_before = lives
+                paddle, ball, blocks, all_sprites, lives, points, level = reset_game(
+                    screen_width,
+                    screen_height,
+                    frame_thickness,
+                    header_height,
+                    block_spacing_top,
+                    block_rows
+                )
+                level = level_before
+                lives = lives_before
         else:
             action = ingame_menu()
             print(action)
             if action == "continue":
                 paused = False
             elif action == "restart":
-                paddle, ball, blocks, all_sprites, lives = reset_game(
+                paddle, ball, blocks, all_sprites, lives, points, level = reset_game(
                     screen_width,
                     screen_height,
                     frame_thickness,
                     header_height,
                     block_spacing_top,
+                    block_rows
                 )
                 power_ups.empty()
                 paused = False
@@ -332,13 +343,13 @@ def game_loop():
     pygame.quit()
     sys.exit()
 
-
 def reset_game(
     screen_width,
     screen_height,
     frame_thickness,
     header_height,
     block_spacing_top,
+    block_rows
 ):
 
     paddle = Paddle(screen_width, screen_height, frame_thickness)
@@ -346,7 +357,6 @@ def reset_game(
 
     blocks = pygame.sprite.Group()
     block_columns = 8
-    block_rows = 7
     block_width = (screen_width - frame_thickness * 2) // block_columns
     block_height = 20
     for i in range(block_columns):
@@ -367,7 +377,9 @@ def reset_game(
     all_sprites.add(blocks)
 
     lives = 3
-    return paddle, ball, blocks, all_sprites, lives
+    score = 0
+    level = 1
+    return paddle, ball, blocks, all_sprites, lives, score, level
 
 
 while True:
