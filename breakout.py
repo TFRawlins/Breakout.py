@@ -116,12 +116,14 @@ def game_loop():
 
             if block_hit_list:
                 score = update_score(score, block_hit_list[0])
-
-            for block in block_hit_list:
-                sideornot = check_block_collision(ball, block_hit_list[0])
-                ball.block_bounce(sideornot)
-                if block.hit():
-                    block.kill()
+                for block in block_hit_list:
+                    sideornot = check_block_collision(ball, block)
+                    ball.block_bounce(sideornot)
+                    if block.hit():
+                        if PowerUp.should_spawn():
+                            power_up = PowerUp(block.rect.x, block.rect.y)
+                            power_ups.add(power_up)
+                        block.kill()
                     
             for power_up in power_ups.copy():
                 if power_up.rect.top > screen_height:
