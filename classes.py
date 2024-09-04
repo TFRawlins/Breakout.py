@@ -23,7 +23,7 @@ class Paddle(pygame.sprite.Sprite):
         self.image = pygame.Surface([100, 10])
         self.image.fill(WHITE)
         self.rect = self.image.get_rect()
-        self.speed = 6
+        self.speed = 8
         self.game_width = game_width
         self.game_height = game_height
         self.frame_thickness = frame_thickness
@@ -131,6 +131,8 @@ class Ball(pygame.sprite.Sprite):
         if new_vertical_speed > 0:
             new_vertical_speed = -new_vertical_speed
 
+
+
         self.x_speed = new_horizontal_speed
         self.y_speed = new_vertical_speed
 
@@ -139,6 +141,26 @@ class Ball(pygame.sprite.Sprite):
             self.y_speed = -self.y_speed
         else:
             self.x_speed = -self.x_speed
+
+    def check_speed(self):
+        if abs(self.y_speed) < 1:
+            magnitud = self.x_speed**2 + self.y_speed**2
+            if self.y_speed > 0:
+                self.y_speed = 1
+                new_x = math.sqrt(magnitud - self.y_speed**2)
+                if new_x < 0:
+                    self.x_speed = new_x * -1
+                else:
+                    self.x_speed = new_x
+            else:
+                self.y_speed = -1
+                new_x = math.sqrt(magnitud - self.y_speed**2)
+                if new_x < 0:
+                    self.x_speed = new_x * -1
+                else:
+                    self.x_speed = new_x
+
+    
 
 
 class Block(pygame.sprite.Sprite):
