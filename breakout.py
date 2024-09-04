@@ -4,6 +4,7 @@ from classes import (
     Paddle,
     Ball,
     Block,
+    PowerUp,
     calculate_bounce_centrality,
     check_block_collision,
 )
@@ -119,20 +120,33 @@ def add_points(points, last_hit, combo):
 
 
 
+def display_score(screen, score):
+    font = pygame.font.Font(None, 36)
+    text = font.render(f"Score: {score}", True, (255, 255, 255))
+    screen.blit(text, (10, 10))
+
+
+def update_score(score, block):
+    score += block.get_color() * 100
+    return score
+
+
 def game_loop():
     running = True
     paused = False
 
-    HEADER_HEIGHT = 50
-    FRAME_THICKNESS = 11
-    BLOCK_SPACING_TOP = 30
+    score = 0
+
+    header_height = 50
+    frame_thickness = 11
+    block_spacing_top = 30
 
     paddle, ball, blocks, all_sprites, lives = reset_game(
         screen_width,
         screen_height,
-        FRAME_THICKNESS,
-        HEADER_HEIGHT,
-        BLOCK_SPACING_TOP,
+        frame_thickness,
+        header_height,
+        block_spacing_top,
     )
 
     points = 0
@@ -143,20 +157,20 @@ def game_loop():
 
     block_columns = 8
     block_rows = 7
-    block_width = (screen_width - FRAME_THICKNESS * 2) // block_columns
+    block_width = (screen_width - frame_thickness * 2) // block_columns
     block_height = 20
 
-    ball = Ball(screen_width, screen_height, FRAME_THICKNESS, HEADER_HEIGHT)
-    paddle = Paddle(screen_width, screen_height, FRAME_THICKNESS)
-
+    ball = Ball(screen_width, screen_height, frame_thickness, header_height)
+    paddle = Paddle(screen_width, screen_height, frame_thickness)
+    power_ups = pygame.sprite.Group()
     blocks = pygame.sprite.Group()
     for i in range(block_columns):
         for j in range(block_rows):
-            block_x = FRAME_THICKNESS + i * block_width
+            block_x = frame_thickness + i * block_width
             block_y = (
-                HEADER_HEIGHT
-                + FRAME_THICKNESS
-                + BLOCK_SPACING_TOP
+                header_height
+                + frame_thickness
+                + block_spacing_top
                 + j * block_height
             )
             block = Block(block_x, block_y, block_width, block_height, j)
@@ -175,7 +189,6 @@ def game_loop():
                 paused = not paused
 
         if not paused:
-
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT]:
                 paddle.move(-1)
@@ -183,26 +196,43 @@ def game_loop():
                 paddle.move(1)
 
             ball.update()
+            power_ups.update()
 
-            if pygame.sprite.collide_rect(ball, paddle):
-                if ball.y_speed > 0:
-                    centrality = calculate_bounce_centrality(ball, paddle)
-                    ball.paddle_bounce(centrality)
+            if pygame.sprite.collide_rect(ball, paddle) and ball.y_speed > 0:
+                centrality = calculate_bounce_centrality(ball, paddle)
+                ball.paddle_bounce(centrality)
+                if ball.y_speed > -1:
+                    ball.y_speed = -1
 
-            block_hit_list = pygame.sprite.spritecollide(ball, blocks, True)
+            block_hit_list = pygame.sprite.spritecollide(ball, blocks, False)
+
             if block_hit_list:
-                sideornot = check_block_collision(ball, block_hit_list[0])
-                ball.block_bounce(sideornot)
-                points, last_hit, combo = add_points(points, last_hit, combo)
-                if combo >= 1:
-                    combo_text = f"Combo x{combo}"
-                    combo_time = time.time()
-                    print(combo_text)
-                else:
-                    combo_text = None
-            
+                score = update_score(score, block_hit_list[0])
+                for block in block_hit_list:
+                    sideornot = check_block_collision(ball, block)
+                    ball.block_bounce(sideornot)
+                    points, last_hit, combo = add_points(points, last_hit, combo)
+                    if combo >= 1:
+                        combo_text = f"Combo x{combo}"
+                        combo_time = time.time()
+                        print(combo_text)
+                    else:
+                        combo_text = None
+                        
+                    if block.hit():
+                        if PowerUp.should_spawn():
+                            power_up = PowerUp(block.rect.x, block.rect.y)
+                            power_ups.add(power_up)
+                        block.kill()
+                    
+            for power_up in power_ups.copy():
+                if power_up.rect.top > screen_height:
+                    power_ups.remove(power_up)
+                elif pygame.sprite.collide_rect(power_up, paddle):
+                    lives += 1
+                    power_ups.remove(power_up)
+                    
             ball.check_speed()
-
             ball_offset = 20
             if ball.rect.bottom + ball_offset > screen_height:
                 ball.y_speed = -ball.y_speed
@@ -211,35 +241,40 @@ def game_loop():
                 lives -= 1
                 print(f"Lives: {lives}")
                 if lives > 0:
-                    # Reset ball and paddle positions
-                    _lives = lives
-                    paddle, ball, blocks, all_sprites, _lives = reset_game(
+                    ball = Ball(
                         screen_width,
                         screen_height,
-                        FRAME_THICKNESS,
-                        HEADER_HEIGHT,
-                        BLOCK_SPACING_TOP,
+                        frame_thickness,
+                        header_height,
                     )
+                    paddle = Paddle(
+                        screen_width, screen_height, frame_thickness
+                    )
+                    all_sprites = pygame.sprite.Group()
+                    all_sprites.add(paddle)
+                    all_sprites.add(ball)
+                    all_sprites.add(blocks)
+                    power_ups.empty()
                 else:
-                    # Game over
                     running = False
                     print("Game Over!")
                     return
+
             screen.fill(BLACK)
 
             pygame.draw.rect(
                 screen,
                 FRAME_COLOR,
-                (0, HEADER_HEIGHT, screen_width, FRAME_THICKNESS),
+                (0, header_height, screen_width, frame_thickness),
             )
             pygame.draw.rect(
                 screen,
                 FRAME_COLOR,
                 (
                     0,
-                    screen_height - FRAME_THICKNESS,
+                    screen_height - frame_thickness,
                     screen_width,
-                    FRAME_THICKNESS,
+                    frame_thickness,
                 ),
             )
             pygame.draw.rect(
@@ -247,30 +282,30 @@ def game_loop():
                 FRAME_COLOR,
                 (
                     0,
-                    HEADER_HEIGHT,
-                    FRAME_THICKNESS,
-                    screen_height - HEADER_HEIGHT,
+                    header_height,
+                    frame_thickness,
+                    screen_height - header_height,
                 ),
             )
             pygame.draw.rect(
                 screen,
                 FRAME_COLOR,
                 (
-                    screen_width - FRAME_THICKNESS - 1,
-                    HEADER_HEIGHT,
-                    FRAME_THICKNESS + 1,
-                    screen_height - HEADER_HEIGHT,
+                    screen_width - frame_thickness - 1,
+                    header_height,
+                    frame_thickness + 1,
+                    screen_height - header_height,
                 ),
             )
             pygame.draw.rect(
-                screen, (0, 0, 0), (0, 0, screen_width, HEADER_HEIGHT)
+                screen, (0, 0, 0), (0, 0, screen_width, header_height)
             )
 
             display_lives(screen, lives, screen_width)
             display_points(screen, points)
             combo = display_combo(screen, combo, combo_time)
-
             all_sprites.draw(screen)
+            power_ups.draw(screen)
             pygame.display.flip()
 
         else:
@@ -282,10 +317,11 @@ def game_loop():
                 paddle, ball, blocks, all_sprites, lives = reset_game(
                     screen_width,
                     screen_height,
-                    FRAME_THICKNESS,
-                    HEADER_HEIGHT,
-                    BLOCK_SPACING_TOP,
+                    frame_thickness,
+                    header_height,
+                    block_spacing_top,
                 )
+                power_ups.empty()
                 paused = False
             elif action == "exit":
                 return
@@ -300,26 +336,26 @@ def game_loop():
 def reset_game(
     screen_width,
     screen_height,
-    FRAME_THICKNESS,
-    HEADER_HEIGHT,
-    BLOCK_SPACING_TOP,
+    frame_thickness,
+    header_height,
+    block_spacing_top,
 ):
 
-    paddle = Paddle(screen_width, screen_height, FRAME_THICKNESS)
-    ball = Ball(screen_width, screen_height, FRAME_THICKNESS, HEADER_HEIGHT)
+    paddle = Paddle(screen_width, screen_height, frame_thickness)
+    ball = Ball(screen_width, screen_height, frame_thickness, header_height)
 
     blocks = pygame.sprite.Group()
     block_columns = 8
     block_rows = 7
-    block_width = (screen_width - FRAME_THICKNESS * 2) // block_columns
+    block_width = (screen_width - frame_thickness * 2) // block_columns
     block_height = 20
     for i in range(block_columns):
         for j in range(block_rows):
-            block_x = FRAME_THICKNESS + i * block_width
+            block_x = frame_thickness + i * block_width
             block_y = (
-                HEADER_HEIGHT
-                + FRAME_THICKNESS
-                + BLOCK_SPACING_TOP
+                header_height
+                + frame_thickness
+                + block_spacing_top
                 + j * block_height
             )
             block = Block(block_x, block_y, block_width, block_height, j)

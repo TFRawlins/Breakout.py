@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 
 screen_width = 800
 screen_height = 600
@@ -76,8 +77,8 @@ class Ball(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = game_width // 2
         self.rect.y = game_height // 2
-        self.x_speed = 9
-        self.y_speed = 9
+        self.x_speed = 0
+        self.y_speed = 5
         self.game_width = game_width
         self.game_height = game_height
         self.frame_thickness = frame_thickness
@@ -196,8 +197,76 @@ class Block(pygame.sprite.Sprite):
             self.image.fill(LIGHT_BLUE)
             return 1
 
+    def update_color(self):
+        if self.lives == 7:
+            self.image.fill(PINK)
+        elif self.lives == 6:
+            self.image.fill(RED)
+        elif self.lives == 5:
+            self.image.fill(ORANGE)
+        elif self.lives == 4:
+            self.image.fill(YELLOW)
+        elif self.lives == 3:
+            self.image.fill(GREEN)
+        elif self.lives == 2:
+            self.image.fill(BLUE)
+        elif self.lives == 1:
+            self.image.fill(LIGHT_BLUE)
+    def get_color(self):
+        return self.lives
+
     def hit(self):
         self.lives -= 1
         if self.lives <= 0:
-            return True  # El bloque debe ser eliminado
+            return True
+        self.update_color()
         return False
+
+    def should_spawn_power_up(self):
+        return PowerUp.should_spawn()
+    
+
+class PowerUp(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.width = 30
+        self.height = 30
+        self.image = pygame.Surface([self.width, self.height], pygame.SRCALPHA)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.speed = 2
+        self.draw_power_up()
+
+    def draw_power_up(self):
+        
+        pygame.draw.rect(self.image, (255, 215, 0), [0, 0, self.width, self.height]) 
+        pygame.draw.rect(self.image, (0, 0, 0), [0, 0, self.width, self.height], 2) 
+
+        heart_color = (255, 0, 0)
+        heart_width = self.width - 10
+        heart_height = self.height - 10
+        
+        heart_surface = pygame.Surface((heart_width, heart_height), pygame.SRCALPHA)
+
+        pygame.draw.polygon(heart_surface, heart_color, [
+            (heart_width // 2, heart_height // 5),
+            (heart_width // 5, 0),
+            (0, heart_height // 3),
+            (heart_width // 2, heart_height),
+            (heart_width, heart_height // 3),
+            (4 * heart_width // 5, 0),
+        ])
+        
+        pygame.draw.circle(heart_surface, heart_color, (heart_width // 4, heart_height // 4), heart_width // 4)
+        pygame.draw.circle(heart_surface, heart_color, (3 * heart_width // 4, heart_height // 4), heart_width // 4)
+        
+        self.image.blit(heart_surface, (5, 5))
+
+    def update(self):
+        self.rect.y += self.speed
+
+    @staticmethod
+    def should_spawn():
+        return random.random() < 0.5 
+
